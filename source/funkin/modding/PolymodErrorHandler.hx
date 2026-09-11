@@ -208,6 +208,11 @@ class PolymodErrorHandler
         // Notify the user via popup.
         funkin.util.WindowUtil.showError('Script Parsing Error', error.message);
 
+      case SCRIPTED_CLASS_BACKWARDS_COMPATIBILITY_IMPORT:
+        // A scripted class currently has an import that's meant for backwards compatibility.
+        trace(' WARNING '.warning() + ' ' + error.message);
+
+        funkin.util.WindowUtil.showError('Backwards Compatibility Import', error.message);
       case SCRIPTED_CLASS_REDUNDANT_IMPORT:
         // A scripted class imported a module that's already imported.
         trace(' WARNING '.warning() + ' ' + error.message);
