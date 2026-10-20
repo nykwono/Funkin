@@ -284,6 +284,9 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
       receptor.angle = 0;
 
       _gotMad = false;
+
+      // Enable precise input precision when calibrating to ensure the conductor is always synced with precise key presses.
+      FlxG.stage.application.window.onKeyDownPrecise.add(onCalibrationKeyPress);
     });
     createButtonItem('Test', function()
     {
@@ -406,10 +409,77 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
     inputReleaseQueue.push(event);
   }
 
-  // Exits the calibration and resets the offset.
+  function onCalibrationKeyPress(_, _, timestamp:Int64):Void
+  {
+    // We need to make sure we store any necessary Conductor-related fields on precise presses
+    // As the input system is heavily dependent on the time you press the frame rather than processed.
+    var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - timestamp;
+    var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
+    var inputBeat:Float = localConductor.currentBeatTime - (inputLatencyMs / msPerBeat);
+
+    var arrow:ArrowData = getClosestArrowAtBeat(inputBeat);
+
+    var closestBeat:Float = Math.round(inputBeat);
+    var diff:Float = closestBeat - inputBeat;
+    var ms:Float = (diff * msPerBeat);
+
+    if (arrow != null) // eric sees this and goes "OMG NULL REF!!!!"
+    {
+      var timeDiff = (arrow.beat - inputBeat) * msPerBeat;
+
+      if (Math.abs(timeDiff - tempOffset) <= 80)
+      {
+        arrow.sprite.alpha = 0;
+        arrow.sprite.kill();
+        arrows.remove(arrow);
+      }
+    }
+
+    var consistency:Float = getConsistency();
+
+    if (consistency > 40 && differences.length > 8)
+    {
+      jumpInText.text = 'Try to be a little more consistent with your timing!';
+      differences = [];
+      tempOffset = 0;
+      appliedOffsetLerp = 0;
+      _gotMad = true;
+      return;
+    }
+
+    addDifference(ms);
+
+    var actualMs = ms - tempOffset;
+
+    if (differences.length >= 30)
+    {
+      jumpInText.text = 'Calibration complete!';
+      Preferences.globalOffset = tempOffset;
+      exitCalibration(false);
+      return;
+    }
+
+    if (!_gotMad)
+    {
+      if (Math.abs(actualMs) < 45) jumpInText.text = 'Great job';
+      else
+        jumpInText.text = 'Nice job';
+      if (differences.length < 8) jumpInText.text += ", keep going!";
+      else
+        jumpInText.text += "!";
+    }
+
+    jumpInText.text += '\n' + differences.length + '/30';
+
+    _gotMad = false;
+
+    scaleModifier = 0.75;
+  }
 
   public function exitCalibration(cancel:Bool):Void
   {
+    FlxG.stage.application.window.onKeyDownPrecise.remove(onCalibrationKeyPress);
+
     backButton.enabled = false;
     shouldOffset = -1;
     #if FEATURE_TOUCH_CONTROLS
@@ -626,7 +696,7 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
       }
 
       // Hit a note (calibration)
-      if (FlxG.keys.justPressed.ANY #if FEATURE_TOUCH_CONTROLS || TouchUtil.justPressed #end)
+      if (#if FEATURE_TOUCH_CONTROLS TouchUtil.justPressed #else false #end)
       {
         var arrow:ArrowData = getClosestArrowAtBeat(b);
 
@@ -827,10 +897,7 @@ class OffsetMenu extends Page<OptionsState.OptionsMenuPageName>
   function hitNote(note:NoteSprite, input:PreciseInputEvent):Void
   {
     var inputPosition:Float = input.position ?? 0.0;
-    var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - input.timestamp;
-    var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
-
-    var noteDiff:Int = Std.int(note.noteData.time - inputPosition - inputLatencyMs);
+    var noteDiff:Int = Std.int(note.noteData.time - inputPosition);
     addDifference(noteDiff);
 
     if (noteDiff == 0)
