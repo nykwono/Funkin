@@ -6,6 +6,7 @@ import funkin.play.character.BaseCharacter.CharacterType;
 import funkin.data.character.CharacterData;
 import funkin.data.character.CharacterRegistry;
 import funkin.play.components.HealthIcon;
+import funkin.ui.debug.charting.toolboxes.ChartEditorMetadataToolbox;
 import funkin.util.SortUtil;
 import haxe.ui.components.Label;
 import haxe.ui.containers.Grid;
@@ -146,6 +147,7 @@ class ChartEditorCharacterIconSelectorMenu extends ChartEditorBaseMenu
           default:
             throw 'Invalid charType: ' + charType;
         };
+        ChartEditorMetadataToolbox.refreshEventDataToolboxOptions();
 
         defaultText = (charId != "") ? '${charData.name} [${charId}]' : 'None';
         chartEditorState.healthIconsDirty = true;
