@@ -143,6 +143,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
       if (valid)
       {
         chartEditorState.currentSongMetadata.playData.stage = event.data.id;
+        refreshEventDataToolboxOptions();
       }
     };
     var startingValueStage = ChartEditorDropdowns.populateDropdownWithStages(inputStage, chartEditorState.currentSongMetadata.playData.stage);
@@ -280,6 +281,12 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
     dropDown.value = item;
   }
 
+  public static function refreshEventDataToolboxOptions():Void
+  {
+    var eventDataToolbox:Null<ChartEditorEventDataToolbox> = cast state.activeToolboxes.get(ChartEditorState.CHART_EDITOR_TOOLBOX_EVENT_DATA_LAYOUT);
+    if (eventDataToolbox != null) eventDataToolbox.refreshOptionLists();
+  }
+
   override public function refresh():Void
   {
     super.refresh();
@@ -306,7 +313,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
       } : {
         id: 'mainStage',
         text: 'Main Stage'
-        });
+      });
     }
 
     var noteStyleId:String = chartEditorState.currentSongNoteStyle;
