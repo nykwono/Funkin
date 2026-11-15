@@ -147,7 +147,7 @@ class ChartEditorCharacterIconSelectorMenu extends ChartEditorBaseMenu
           default:
             throw 'Invalid charType: ' + charType;
         };
-        ChartEditorMetadataToolbox.refreshEventDataToolboxOptions();
+        ChartEditorMetadataToolbox.refreshEventDataToolboxOptions(chartEditorState);
 
         defaultText = (charId != "") ? '${charData.name} [${charId}]' : 'None';
         chartEditorState.healthIconsDirty = true;
