@@ -143,7 +143,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
       if (valid)
       {
         chartEditorState.currentSongMetadata.playData.stage = event.data.id;
-        refreshEventDataToolboxOptions();
+        refreshEventDataToolboxOptions(chartEditorState);
       }
     };
     var startingValueStage = ChartEditorDropdowns.populateDropdownWithStages(inputStage, chartEditorState.currentSongMetadata.playData.stage);
@@ -281,7 +281,7 @@ class ChartEditorMetadataToolbox extends ChartEditorBaseToolbox
     dropDown.value = item;
   }
 
-  public static function refreshEventDataToolboxOptions():Void
+  public static function refreshEventDataToolboxOptions(state:ChartEditorState):Void
   {
     var eventDataToolbox:Null<ChartEditorEventDataToolbox> = cast state.activeToolboxes.get(ChartEditorState.CHART_EDITOR_TOOLBOX_EVENT_DATA_LAYOUT);
     if (eventDataToolbox != null) eventDataToolbox.refreshOptionLists();
